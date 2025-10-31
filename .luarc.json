@@ -1,0 +1,6 @@
+{
+    "diagnostics.globals": [
+        "draw_right_status",
+        "window"
+    ]
+}
