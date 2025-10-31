@@ -35,11 +35,7 @@ if is_darwin then
 end
 
 config.window_frame = {
-	font = wezterm.font_with_fallback({
-		"0xProto Nerd Font",
-		"AppleGothic",
-	}),
-
+	font = wezterm.font("0xProto Nerd Font"),
 	font_size = 12,
 	active_titlebar_bg = "#000000",
 	inactive_titlebar_bg = "#111111",
@@ -222,11 +218,11 @@ local function merge_arrays(...)
 end
 
 -- Format a section with background and foreground colors
-local function format_section(text, bg, fg, is_first)
+local function format_section(text, bg, fg, is_first, prev_bg)
 	local section = {}
 
 	if not is_first then
-		table.insert(section, { Background = { Color = "none" } })
+		table.insert(section, { Background = { Color = prev_bg or "none" } })
 		table.insert(section, { Foreground = { Color = bg } })
 		table.insert(section, { Text = SOLID_LEFT_ARROW })
 	end
@@ -241,23 +237,7 @@ end
 -- Get battery status (if available)
 local function get_battery_info()
 	for _, b in ipairs(wezterm.battery_info()) do
-		local battery_state = ""
-		if b.state == "Charging" then
-			battery_state = "⚡"
-		elseif b.state == "Discharging" then
-			if b.state_of_charge > 0.8 then
-				battery_state = "🔋"
-			elseif b.state_of_charge > 0.5 then
-				battery_state = "🔋"
-			elseif b.state_of_charge > 0.2 then
-				battery_state = "🪫"
-			else
-				battery_state = "🪫"
-			end
-		else
-			battery_state = "🔌"
-		end
-		return string.format("%s %.0f%%", battery_state, b.state_of_charge * 100)
+		return string.format("%.0f%%", b.state_of_charge * 100)
 	end
 	return nil
 end
@@ -301,7 +281,7 @@ wezterm.on("update-status", function(window, pane)
 	-- Current working directory
 	local cwd = get_cwd(pane)
 	if cwd and cwd ~= "" then
-		local cwd_sections = format_section("📁 " .. cwd, bg1, fg, true)
+		local cwd_sections = format_section(cwd, bg1, fg, true, nil)
 		for _, s in ipairs(cwd_sections) do
 			table.insert(sections, s)
 		end
@@ -309,7 +289,7 @@ wezterm.on("update-status", function(window, pane)
 
 	-- Date and time
 	local date = wezterm.strftime("%Y-%m-%d %H:%M")
-	local time_sections = format_section("🕐 " .. date, bg2, fg, false)
+	local time_sections = format_section(date, bg2, fg, false, bg1)
 	for _, s in ipairs(time_sections) do
 		table.insert(sections, s)
 	end
@@ -317,14 +297,14 @@ wezterm.on("update-status", function(window, pane)
 	-- Battery info (if available)
 	local battery = get_battery_info()
 	if battery then
-		local battery_sections = format_section(battery, bg3, fg, false)
+		local battery_sections = format_section(battery, bg3, fg, false, bg2)
 		for _, s in ipairs(battery_sections) do
 			table.insert(sections, s)
 		end
 	end
 
 	-- Hostname
-	local hostname_sections = format_section("💻 " .. wezterm.hostname(), "#000000", fg, false)
+	local hostname_sections = format_section(wezterm.hostname(), "#000000", fg, false, bg3)
 	for _, s in ipairs(hostname_sections) do
 		table.insert(sections, s)
 	end
