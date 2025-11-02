@@ -288,7 +288,7 @@ wezterm.on("update-status", function(window, pane)
 	end
 
 	-- Date and time
-	local date = wezterm.strftime("%Y-%m-%d %H:%M")
+	local date = wezterm.strftime("%a %b %-d %H:%M")
 	local time_sections = format_section(date, bg2, fg, false, bg1)
 	for _, s in ipairs(time_sections) do
 		table.insert(sections, s)
